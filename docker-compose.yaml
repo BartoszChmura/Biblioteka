@@ -1,0 +1,63 @@
+services:
+  db:
+    image: postgres:17
+    container_name: biblioteka_db
+    environment:
+      POSTGRES_USER: user   
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: biblioteka
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - biblioteka_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: biblioteka_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - biblioteka_network
+
+  backend:
+    build:
+      context: ./backend 
+    container_name: biblioteka_backend
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/biblioteka
+      SECRET_KEY: f9a8e1d9b0c25f77d12345e6b9f23487a6b1c9d876e5f123d6c4e8a7f123e4a6
+      JWT_SECRET_KEY: 12345e6b9f23487a6b1c9d876e5f123d6c4e8a7f123e4a6f9a8e1d9b0c25f7
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    command: ["wait-for-it", "db:5432", "--", "python", "run.py"]
+    networks:
+      - biblioteka_network
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: biblioteka_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    command: ["npm", "run", "dev", "--", "--host"]
+    networks:
+      - biblioteka_network
+      
+networks:
+  biblioteka_network:
+    driver: bridge
+
+volumes:
+  db_data:
+  
