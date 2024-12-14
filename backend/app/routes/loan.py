@@ -29,7 +29,7 @@ def borrow_book(book_id):
     db.session.add(new_loan)
     db.session.commit()
 
-    return jsonify({"message": "Book borrowed successfully"}), 200
+    return jsonify({"message": "Książka wypożyczona pomyślnie"}), 200
 
 @loan_blueprint.route("/return/<int:book_id>", methods=["POST"])
 @jwt_required()

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Books = () => {
   const [books, setBooks] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -48,9 +50,13 @@ const Books = () => {
       );
     } catch (err) {
       console.error(err);
-      setError(
-        err.response?.data?.error || "Nie udało się wypożyczyć książki."
-      );
+      if (err.response?.data?.error === "You have already borrowed this book") {
+        setError("Już wypożyczyłeś tę książkę.");
+      } else {
+        setError(
+          err.response?.data?.error || "Nie udało się wypożyczyć książki."
+        );
+      }
       setTimeout(() => setError(""), 3000);
     }
   };
@@ -61,6 +67,9 @@ const Books = () => {
 
   return (
     <div style={{ padding: "20px" }}>
+      <button onClick={() => navigate(-1)} style={{ marginBottom: "20px" }}>
+        ← Wróć
+      </button>
       <h2>Lista Książek</h2>
       {success && (
         <p style={{ color: "green", textAlign: "center" }}>{success}</p>

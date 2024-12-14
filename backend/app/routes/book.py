@@ -25,6 +25,7 @@ def create_book():
         published_year=published_year,
         genre=genre,
         available_copies=available_copies,
+        total_copies=available_copies,
     )
     db.session.add(new_book)
     db.session.commit()
@@ -42,7 +43,7 @@ def create_book():
 @jwt_required()
 def get_books():
     user_id = get_jwt_identity()
-    books = Book.query.all()
+    books = Book.query.filter_by(is_deleted=False).all()
     return jsonify([
         {
             "id": book.id,
@@ -59,7 +60,7 @@ def get_books():
 @jwt_required()
 def get_book(book_id):
     user_id = get_jwt_identity()
-    book = Book.query.get(book_id)
+    book = Book.query.filter_by(id=book_id, is_deleted=False).first()
     if not book:
         return jsonify({"error": "Book not found"}), 404
 
@@ -80,14 +81,16 @@ def edit_book(book_id):
         return jsonify({"error": "Book not found"}), 404
 
     data = request.get_json()
+
     book.title = data.get("title", book.title)
     book.author = data.get("author", book.author)
     book.published_year = data.get("published_year", book.published_year)
     book.genre = data.get("genre", book.genre)
-    book.available_copies = data.get("available_copies", book.available_copies)
 
     db.session.commit()
+
     return jsonify({"message": "Book updated successfully"}), 200
+
 
 @book_blueprint.route("/<int:book_id>", methods=["DELETE"])
 @admin_required
@@ -96,6 +99,10 @@ def delete_book(book_id):
     if not book:
         return jsonify({"error": "Book not found"}), 404
 
-    db.session.delete(book)
+    if book.available_copies != book.total_copies:
+        return jsonify({"error": "Cannot delete the book. Ensure all copies are returned."}), 400
+
+    book.is_deleted = True
     db.session.commit()
-    return jsonify({"message": "Book deleted successfully"}), 200
+    return jsonify({"message": "Book marked as deleted successfully"}), 200
+

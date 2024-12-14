@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Books from "./pages/Books";
 import History from "./pages/History";
+import AdminPanel from "./pages/AdminPanel";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -17,6 +18,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/register" element={<Register />} />
         <Route path="/books" element={<Books />} />
         <Route path="/history" element={<History />} />
+        <Route path="/admin" element={<AdminPanel />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

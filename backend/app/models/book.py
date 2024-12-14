@@ -9,3 +9,5 @@ class Book(db.Model):
     published_year = db.Column(db.Integer, nullable=True)
     genre = db.Column(db.String(128), nullable=True)
     available_copies = db.Column(db.Integer, default=1, nullable=False)
+    total_copies = db.Column(db.Integer, nullable=False, default=1)
+    is_deleted = db.Column(db.Boolean, nullable=False, default=False)
