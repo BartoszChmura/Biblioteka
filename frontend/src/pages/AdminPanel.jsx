@@ -13,9 +13,22 @@ const AdminPanel = () => {
     genre: "",
     available_copies: 1,
   });
+  const [genres] = useState([
+    "Fantastyka",
+    "Science Fiction",
+    "Romans",
+    "Kryminał",
+    "Thriller",
+    "Horror",
+    "Biografia",
+    "Historia",
+    "Literatura faktu",
+    "Powieść",
+  ]);
   const [editingBook, setEditingBook] = useState(null);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,8 +55,45 @@ const AdminPanel = () => {
     }
   };
 
+  const validateBook = () => {
+    const newErrors = {};
+
+    if (!newBook.title || newBook.title.length > 50) {
+      newErrors.title = "Tytuł jest wymagany i nie może przekraczać 50 znaków.";
+    }
+
+    if (!newBook.author || newBook.author.length > 50) {
+      newErrors.author = "Autor jest wymagany i nie może przekraczać 50 znaków.";
+    }
+
+    if (!/^[a-zA-Z\s.,'-]+$/.test(newBook.author)) {
+      newErrors.author = "Autor może zawierać tylko litery, spacje i podstawowe znaki interpunkcyjne.";
+    }
+
+    const currentYear = new Date().getFullYear();
+    if (!newBook.published_year || isNaN(newBook.published_year)) {
+      newErrors.published_year = "Rok wydania jest wymagany i musi być liczbą.";
+    } else if (newBook.published_year < 1440 || newBook.published_year > currentYear) {
+      newErrors.published_year = `Rok wydania musi być między 1440 a ${currentYear}.`;
+    }
+
+    if (!newBook.genre) {
+      newErrors.genre = "Gatunek jest wymagany.";
+    }
+
+    if (!newBook.available_copies || isNaN(newBook.available_copies)) {
+      newErrors.available_copies = "Dostępne egzemplarze są wymagane i muszą być liczbą.";
+    } else if (newBook.available_copies < 1 || newBook.available_copies > 100) {
+      newErrors.available_copies = "Dostępne egzemplarze muszą być między 1 a 100.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleInputChange = (e) => {
     setNewBook({ ...newBook, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const handleEditInputChange = (e) => {
@@ -55,6 +105,9 @@ const AdminPanel = () => {
 
   const addBook = async (e) => {
     e.preventDefault();
+
+    if (!validateBook()) return;
+
     try {
       const token = localStorage.getItem("token");
       await axios.post("http://localhost:5000/book/add", newBook, {
@@ -79,23 +132,23 @@ const AdminPanel = () => {
   };
 
   const deleteBook = async (bookId) => {
+    const confirmDelete = window.confirm("Czy na pewno chcesz usunąć tę książkę?");
+    if (!confirmDelete) return;
+  
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:5000/book/${bookId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess("Książka została usunięta.");
       setTimeout(() => setSuccess(""), 3000);
       fetchBooks();
     } catch (err) {
-      setError(
-        "Nie udało się usunąć książki. Upewnij się, że wszystkie egzemplarze są dostępne."
-      );
+      setError("Nie udało się usunąć książki.");
       setTimeout(() => setError(""), 3000);
     }
   };
+  
 
   const startEditing = (book) => {
     setEditingBook({
@@ -143,42 +196,8 @@ const AdminPanel = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      {error && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "#ffcccc",
-            color: "#cc0000",
-            padding: "10px 20px",
-            borderRadius: "5px",
-            zIndex: 1000,
-            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
-          }}
-        >
-          {error}
-        </div>
-      )}
-      {success && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "#ccffcc",
-            color: "#009900",
-            padding: "10px 20px",
-            borderRadius: "5px",
-            zIndex: 1000,
-            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
-          }}
-        >
-          {success}
-        </div>
-      )}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      {success && <p style={{ color: "green" }}>{success}</p>}
 
       <h2>Panel Administratora</h2>
       <button onClick={() => navigate(-1)} style={{ marginBottom: "20px" }}>
@@ -187,47 +206,67 @@ const AdminPanel = () => {
 
       <form onSubmit={addBook} style={{ marginBottom: "20px" }}>
         <h3>Dodaj nową książkę</h3>
-        <input
-          type="text"
-          name="title"
-          placeholder="Tytuł"
-          value={newBook.title}
-          onChange={handleInputChange}
-          required
-        />
-        <input
-          type="text"
-          name="author"
-          placeholder="Autor"
-          value={newBook.author}
-          onChange={handleInputChange}
-          required
-        />
-        <input
-          type="number"
-          name="published_year"
-          placeholder="Rok wydania"
-          value={newBook.published_year}
-          onChange={handleInputChange}
-          required
-        />
-        <input
-          type="text"
-          name="genre"
-          placeholder="Gatunek"
-          value={newBook.genre}
-          onChange={handleInputChange}
-          required
-        />
-        <input
-          type="number"
-          name="available_copies"
-          placeholder="Dostępne egzemplarze"
-          value={newBook.available_copies}
-          onChange={handleInputChange}
-          min="1"
-          required
-        />
+        <div>
+          <input
+            type="text"
+            name="title"
+            placeholder="Tytuł"
+            value={newBook.title}
+            onChange={handleInputChange}
+            required
+          />
+          {errors.title && <p style={{ color: "red", fontSize: "12px" }}>{errors.title}</p>}
+        </div>
+        <div>
+          <input
+            type="text"
+            name="author"
+            placeholder="Autor"
+            value={newBook.author}
+            onChange={handleInputChange}
+            required
+          />
+          {errors.author && <p style={{ color: "red", fontSize: "12px" }}>{errors.author}</p>}
+        </div>
+        <div>
+          <input
+            type="number"
+            name="published_year"
+            placeholder="Rok wydania"
+            value={newBook.published_year}
+            onChange={handleInputChange}
+            required
+          />
+          {errors.published_year && <p style={{ color: "red", fontSize: "12px" }}>{errors.published_year}</p>}
+        </div>
+        <div>
+          <select
+            name="genre"
+            value={newBook.genre}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Wybierz gatunek</option>
+            {genres.map((genre) => (
+              <option key={genre} value={genre}>
+                {genre}
+              </option>
+            ))}
+          </select>
+          {errors.genre && <p style={{ color: "red", fontSize: "12px" }}>{errors.genre}</p>}
+        </div>
+        <div>
+          <input
+            type="number"
+            name="available_copies"
+            placeholder="Dostępne egzemplarze"
+            value={newBook.available_copies}
+            onChange={handleInputChange}
+            min="1"
+            required
+          />
+          {errors.available_copies && <p style={{ color: "red", fontSize: "12px" }}>{errors.available_copies}</p>}
+        </div>
         <button type="submit">Dodaj książkę</button>
       </form>
 

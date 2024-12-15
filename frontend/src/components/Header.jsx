@@ -5,7 +5,6 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Ukrywamy Header na stronach logowania i rejestracji
   if (location.pathname === "/login" || location.pathname === "/register") {
     return null;
   }
