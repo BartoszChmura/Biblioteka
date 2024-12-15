@@ -14,14 +14,14 @@ def borrow_book(book_id):
 
     book = Book.query.get(book_id)
     if not book:
-        return jsonify({"error": "Book not found"}), 404
+        return jsonify({"error": "Nie znaleziono książki"}), 404
 
     if book.available_copies < 1:
-        return jsonify({"error": "No copies available"}), 400
+        return jsonify({"error": "Brak dostępnych egzemplarzy"}), 400
 
     existing_loan = Loan.query.filter_by(user_id=user_id, book_id=book_id, return_date=None).first()
     if existing_loan:
-        return jsonify({"error": "You have already borrowed this book"}), 400
+        return jsonify({"error": "Już wypożyczyłeś tę książkę"}), 400
 
     book.available_copies -= 1
 
@@ -29,7 +29,7 @@ def borrow_book(book_id):
     db.session.add(new_loan)
     db.session.commit()
 
-    return jsonify({"message": "Książka wypożyczona pomyślnie"}), 200
+    return jsonify({"message": "Książka została pomyślnie wypożyczona"}), 200
 
 @loan_blueprint.route("/return/<int:book_id>", methods=["POST"])
 @jwt_required()
@@ -38,7 +38,7 @@ def return_book(book_id):
 
     loan = Loan.query.filter_by(user_id=user_id, book_id=book_id, return_date=None).first()
     if not loan:
-        return jsonify({"error": "No active loan found for this book"}), 404
+        return jsonify({"error": "Nie znaleziono aktywnego wypożyczenia dla tej książki"}), 404
 
     loan.return_date = datetime.utcnow()
 
@@ -47,7 +47,7 @@ def return_book(book_id):
 
     db.session.commit()
 
-    return jsonify({"message": "Book returned successfully"}), 200
+    return jsonify({"message": "Książka została pomyślnie zwrócona"}), 200
 
 @loan_blueprint.route("/history", methods=["GET"])
 @jwt_required()

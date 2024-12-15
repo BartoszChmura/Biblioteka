@@ -20,6 +20,7 @@ const History = () => {
         setLoans(response.data);
       } catch (err) {
         setError("Nie udało się pobrać historii wypożyczeń.");
+        setTimeout(() => setError(""), 3000);
         console.error(err);
       }
     };
@@ -67,19 +68,49 @@ const History = () => {
     }
   };
 
-  if (error) {
-    return <p style={{ color: "red", textAlign: "center" }}>{error}</p>;
-  }
-
   return (
     <div style={{ padding: "20px" }}>
+      {error && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#ffcccc",
+            color: "#cc0000",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            zIndex: 1000,
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+          }}
+        >
+          {error}
+        </div>
+      )}
+      {success && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#ccffcc",
+            color: "#009900",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            zIndex: 1000,
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+          }}
+        >
+          {success}
+        </div>
+      )}
+
       <button onClick={() => navigate(-1)} style={{ marginBottom: "20px" }}>
         ← Wróć
       </button>
       <h2>Historia Wypożyczeń</h2>
-      {success && (
-        <p style={{ color: "green", textAlign: "center" }}>{success}</p>
-      )}
       <div>
         {loans.length > 0 ? (
           loans.map((loan) => (

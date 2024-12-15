@@ -6,26 +6,30 @@ const Books = () => {
   const [books, setBooks] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/book/all", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setBooks(response.data);
-      } catch (err) {
-        setError("Nie udało się pobrać listy książek. Zaloguj się ponownie.");
-        console.error(err);
-      }
-    };
+  const fetchBooks = async (page = 1) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`http://localhost:5000/book/all?page=${page}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setBooks(response.data.books);
+      setCurrentPage(response.data.page);
+      setTotalPages(response.data.pages);
+    } catch (err) {
+      setError("Nie udało się pobrać listy książek. Zaloguj się ponownie.");
+      setTimeout(() => setError(""), 3000);
+    }
+  };
 
-    fetchBooks();
-  }, []);
+  useEffect(() => {
+    fetchBooks(currentPage);
+  }, [currentPage]);
 
   const borrowBook = async (bookId) => {
     try {
@@ -49,8 +53,7 @@ const Books = () => {
         )
       );
     } catch (err) {
-      console.error(err);
-      if (err.response?.data?.error === "You have already borrowed this book") {
+      if (err.response?.data?.error === "Już wypożyczyłeś tę książkę") {
         setError("Już wypożyczyłeś tę książkę.");
       } else {
         setError(
@@ -61,19 +64,56 @@ const Books = () => {
     }
   };
 
-  if (error) {
-    return <p style={{ color: "red", textAlign: "center" }}>{error}</p>;
-  }
+  const changePage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   return (
     <div style={{ padding: "20px" }}>
+      {error && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#ffcccc",
+            color: "#cc0000",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            zIndex: 1000,
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+          }}
+        >
+          {error}
+        </div>
+      )}
+      {success && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#ccffcc",
+            color: "#009900",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            zIndex: 1000,
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+          }}
+        >
+          {success}
+        </div>
+      )}
+
       <button onClick={() => navigate(-1)} style={{ marginBottom: "20px" }}>
         ← Wróć
       </button>
       <h2>Lista Książek</h2>
-      {success && (
-        <p style={{ color: "green", textAlign: "center" }}>{success}</p>
-      )}
       <div>
         {books.map((book) => (
           <div
@@ -97,6 +137,26 @@ const Books = () => {
             </button>
           </div>
         ))}
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+        <button onClick={() => changePage(currentPage - 1)} disabled={currentPage === 1}>
+          Poprzednia
+        </button>
+        {[...Array(totalPages)].map((_, index) => (
+          <button
+            key={index}
+            onClick={() => changePage(index + 1)}
+            style={{
+              margin: "0 5px",
+              backgroundColor: currentPage === index + 1 ? "#ccc" : "transparent",
+            }}
+          >
+            {index + 1}
+          </button>
+        ))}
+        <button onClick={() => changePage(currentPage + 1)} disabled={currentPage === totalPages}>
+          Następna
+        </button>
       </div>
     </div>
   );

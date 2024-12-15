@@ -16,23 +16,23 @@ const Register = () => {
         username,
         password,
       });
-      setSuccess("Rejestracja przebiegła pomyślnie, trwa przekierowywanie..");
+      setSuccess("Rejestracja przebiegła pomyślnie, trwa przekierowywanie...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setError("Username already exists");
+      setError("Nazwa użytkownika już istnieje");
     }
   };
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>Register</h2>
+      <h2>Rejestracja</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
       {success && <p style={{ color: "green" }}>{success}</p>}
       <form onSubmit={handleRegister}>
         <div>
           <input
             type="text"
-            placeholder="Username"
+            placeholder="Nazwa użytkownika"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -41,16 +41,16 @@ const Register = () => {
         <div>
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Hasło"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
-        <button type="submit">Register</button>
+        <button type="submit">Zarejestruj się</button>
       </form>
       <p>
-        Masz już konto? <a href="/login">Login</a>
+        Masz już konto? <a href="/login">Logowanie</a>
       </p>
     </div>
   );

@@ -24,13 +24,13 @@ const Login = () => {
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>Login</h2>
+      <h2>Logowanie</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
       <form onSubmit={handleLogin}>
         <div>
           <input
             type="text"
-            placeholder="Username"
+            placeholder="Nazwa użytkownika"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -39,16 +39,16 @@ const Login = () => {
         <div>
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Hasło"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit">Zaloguj się</button>
       </form>
       <p>
-        Don't have an account? <a href="/register">Register</a>
+        Nie masz jeszcze konta? <a href="/register">Rejestracja</a>
       </p>
     </div>
   );

@@ -29,14 +29,13 @@ const Header = () => {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: "0px 20px", // Dodano padding dla lewego i prawego wyrównania
+        padding: "0px 20px",
         background: "rgba(0, 0, 0, 0.8)",
         color: "white",
         zIndex: 1000,
         boxSizing: "border-box",
       }}
     >
-      {/* Lewy górny przycisk: Strona Główna */}
       <button
         onClick={goToHome}
         style={{
@@ -46,15 +45,14 @@ const Header = () => {
           fontWeight: "bold",
           fontSize: "16px",
           cursor: "pointer",
-          padding: "5px 0px", // Mniejszy padding na osi X
-          textAlign: "left", // Wyrównanie tekstu do lewej
-          marginLeft: "-10px", // Przesunięcie bardziej w lewo
+          padding: "5px 0px",
+          textAlign: "left",
+          marginLeft: "-10px",
         }}
       >
         Strona Główna
       </button>
 
-      {/* Prawy górny przycisk: Wyloguj */}
       <button
         onClick={handleLogout}
         style={{
@@ -64,9 +62,9 @@ const Header = () => {
           fontWeight: "bold",
           fontSize: "16px",
           cursor: "pointer",
-          padding: "5px 0px", // Mniejszy padding na osi X
-          textAlign: "right", // Wyrównanie tekstu do prawej
-          marginRight: "-10px", // Przesunięcie bardziej w prawo
+          padding: "5px 0px",
+          textAlign: "right",
+          marginRight: "-10px",
         }}
       >
         Wyloguj się

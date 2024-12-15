@@ -17,7 +17,7 @@ def create_book():
     available_copies = data.get("available_copies", 1)
 
     if not title or not author:
-        return jsonify({"error": "Title and author are required"}), 400
+        return jsonify({"error": "Tytuł i autor są wymagane"}), 400
 
     new_book = Book(
         title=title,
@@ -31,7 +31,7 @@ def create_book():
     db.session.commit()
 
     return jsonify({
-        "message": "Book created successfully",
+        "message": "Książka została pomyślnie utworzona",
         "book": {
             "id": new_book.id,
             "title": new_book.title,
@@ -42,19 +42,31 @@ def create_book():
 @book_blueprint.route("/all", methods=["GET"])
 @jwt_required()
 def get_books():
-    user_id = get_jwt_identity()
-    books = Book.query.filter_by(is_deleted=False).all()
-    return jsonify([
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 10))
+
+    query = Book.query.filter_by(is_deleted=False).order_by(Book.id.desc())
+    paginated_books = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    books = [
         {
             "id": book.id,
             "title": book.title,
             "author": book.author,
             "published_year": book.published_year,
             "genre": book.genre,
-            "available_copies": book.available_copies
+            "available_copies": book.available_copies,
         }
-        for book in books
-    ]), 200
+        for book in paginated_books.items
+    ]
+
+    return jsonify({
+        "books": books,
+        "total": paginated_books.total,
+        "page": paginated_books.page,
+        "pages": paginated_books.pages,
+    }), 200
+
 
 @book_blueprint.route("/<int:book_id>", methods=["GET"])
 @jwt_required()
@@ -62,7 +74,7 @@ def get_book(book_id):
     user_id = get_jwt_identity()
     book = Book.query.filter_by(id=book_id, is_deleted=False).first()
     if not book:
-        return jsonify({"error": "Book not found"}), 404
+        return jsonify({"error": "Nie znaleziono książki"}), 404
 
     return jsonify({
         "id": book.id,
@@ -78,7 +90,7 @@ def get_book(book_id):
 def edit_book(book_id):
     book = Book.query.get(book_id)
     if not book:
-        return jsonify({"error": "Book not found"}), 404
+        return jsonify({"error": "Nie znaleziono książki"}), 404
 
     data = request.get_json()
 
@@ -89,7 +101,7 @@ def edit_book(book_id):
 
     db.session.commit()
 
-    return jsonify({"message": "Book updated successfully"}), 200
+    return jsonify({"message": "Książka została pomyślnie zaktualizowana"}), 200
 
 
 @book_blueprint.route("/<int:book_id>", methods=["DELETE"])
@@ -97,12 +109,11 @@ def edit_book(book_id):
 def delete_book(book_id):
     book = Book.query.get(book_id)
     if not book:
-        return jsonify({"error": "Book not found"}), 404
+        return jsonify({"error": "Nie znaleziono książki"}), 404
 
     if book.available_copies != book.total_copies:
-        return jsonify({"error": "Cannot delete the book. Ensure all copies are returned."}), 400
+        return jsonify({"error": "Nie można usunąć książki. Upewnij się, że wszystkie egzemplarze zostały zwrócone."}), 400
 
     book.is_deleted = True
     db.session.commit()
-    return jsonify({"message": "Book marked as deleted successfully"}), 200
-
+    return jsonify({"message": "Książka została oznaczona jako usunięta"}), 200

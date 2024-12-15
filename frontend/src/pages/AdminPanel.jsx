@@ -4,6 +4,8 @@ import axios from "axios";
 
 const AdminPanel = () => {
   const [books, setBooks] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [newBook, setNewBook] = useState({
     title: "",
     author: "",
@@ -18,7 +20,7 @@ const AdminPanel = () => {
 
   useEffect(() => {
     fetchBooks();
-  }, []);
+  }, [page]);
 
   const fetchBooks = async () => {
     try {
@@ -27,8 +29,13 @@ const AdminPanel = () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: {
+          page,
+          per_page: 10,
+        },
       });
-      setBooks(response.data);
+      setBooks(response.data.books);
+      setTotalPages(response.data.pages);
     } catch (err) {
       setError("Nie udało się pobrać listy książek.");
       setTimeout(() => setError(""), 3000);
@@ -127,12 +134,53 @@ const AdminPanel = () => {
     }
   };
 
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
     <div style={{ padding: "20px" }}>
-      <h2>Panel Administratora</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && <p style={{ color: "green" }}>{success}</p>}
+      {error && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#ffcccc",
+            color: "#cc0000",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            zIndex: 1000,
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+          }}
+        >
+          {error}
+        </div>
+      )}
+      {success && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#ccffcc",
+            color: "#009900",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            zIndex: 1000,
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+          }}
+        >
+          {success}
+        </div>
+      )}
 
+      <h2>Panel Administratora</h2>
       <button onClick={() => navigate(-1)} style={{ marginBottom: "20px" }}>
         ← Wróć
       </button>
@@ -236,6 +284,33 @@ const AdminPanel = () => {
             )}
           </div>
         ))}
+      </div>
+
+      <div style={{ marginTop: "10px", textAlign: "center" }}>
+        <button
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1}
+        >
+          Poprzednia strona
+        </button>
+        {[...Array(totalPages)].map((_, index) => (
+          <button
+            key={index}
+            onClick={() => handlePageChange(index + 1)}
+            style={{
+              margin: "0 5px",
+              backgroundColor: page === index + 1 ? "#ccc" : "transparent",
+            }}
+          >
+            {index + 1}
+          </button>
+        ))}
+        <button
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page === totalPages}
+        >
+          Następna strona
+        </button>
       </div>
     </div>
   );

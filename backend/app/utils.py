@@ -8,6 +8,6 @@ def admin_required(fn):
     def wrapper(*args, **kwargs):
         claims = get_jwt()
         if claims.get("role") != "ADMIN":
-            return jsonify({"error": "Admin access required"}), 403
+            return jsonify({"error": "Wymagane uprawnienia administratora"}), 403
         return fn(*args, **kwargs)
     return wrapper

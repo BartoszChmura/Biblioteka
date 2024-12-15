@@ -13,11 +13,11 @@ def register():
     password = data.get("password")
 
     if not username or not password:
-        return jsonify({"error": "Username and password are required"}), 400
+        return jsonify({"error": "Nazwa użytkownika i hasło są wymagane"}), 400
 
     existing_user = User.query.filter_by(username=username).first()
     if existing_user:
-        return jsonify({"error": "User already exists"}), 409
+        return jsonify({"error": "Użytkownik już istnieje"}), 409
 
     role = UserRole.ADMIN if username.lower() == "admin" else UserRole.USER
 
@@ -27,7 +27,7 @@ def register():
     db.session.commit()
 
     return jsonify({
-        "message": "User registered successfully",
+        "message": "Użytkownik został pomyślnie zarejestrowany",
         "user": {
             "username": new_user.username,
             "role": new_user.role.name
@@ -42,11 +42,11 @@ def login():
     password = data.get("password")
 
     if not username or not password:
-        return jsonify({"error": "Username and password are required"}), 400
+        return jsonify({"error": "Nazwa użytkownika i hasło są wymagane"}), 400
 
     user = User.query.filter_by(username=username).first()
     if not user or not user.check_password(password):
-        return jsonify({"error": "Invalid username or password"}), 401
+        return jsonify({"error": "Nieprawidłowa nazwa użytkownika lub hasło"}), 401
 
     access_token = create_access_token(
         identity=str(user.id),
