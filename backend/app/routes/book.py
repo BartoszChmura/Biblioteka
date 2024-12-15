@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.models.book import Book
 from app.utils import admin_required
 from datetime import datetime
-from app import db
+from app.extensions import db
 
 book_blueprint = Blueprint("book", __name__)
 
