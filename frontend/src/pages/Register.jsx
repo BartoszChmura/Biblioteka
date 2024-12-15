@@ -12,10 +12,10 @@ const Register = () => {
   const validateUsername = (username) => {
     const usernameRegex = /^[a-zA-Z0-9_-]+$/;
     if (username.length < 3 || username.length > 20) {
-      return "Nazwa użytkownika musi mieć od 3 do 20 znaków.";
+      return "Nazwa użytkownika musi mieć od 3 do 20 znaków";
     }
     if (!usernameRegex.test(username)) {
-      return "Nazwa użytkownika może zawierać tylko litery, cyfry, '-' i '_'.";
+      return "Nazwa użytkownika może zawierać tylko litery, cyfry, '-' i '_'";
     }
     return null;
   };

@@ -73,8 +73,23 @@ def create_book():
 def get_books():
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 10))
+    search = request.args.get("search", "")
+    sort = request.args.get("sort", "id")
 
-    query = Book.query.filter_by(is_deleted=False).order_by(Book.id.desc())
+    query = Book.query.filter_by(is_deleted=False)
+
+    if search:
+        query = query.filter(Book.title.ilike(f"%{search}%"))
+
+    if sort == "title":
+        query = query.order_by(Book.title.asc())
+    elif sort == "author":
+        query = query.order_by(Book.author.asc())
+    elif sort == "year":
+        query = query.order_by(Book.published_year.desc())
+    else:
+        query = query.order_by(Book.id.desc())
+
     paginated_books = query.paginate(page=page, per_page=per_page, error_out=False)
 
     books = [

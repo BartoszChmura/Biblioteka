@@ -3,50 +3,44 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const History = () => {
-  const [loans, setLoans] = useState([]);
+  const [loans, setLoans] = useState([]); 
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [success, setSuccess] = useState(""); 
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("loan_date_desc");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/loan/history", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setLoans(response.data);
-      } catch (err) {
-        setError("Nie udało się pobrać historii wypożyczeń.");
-        setTimeout(() => setError(""), 3000);
-        console.error(err);
-      }
-    };
+  const fetchHistory = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:5000/loan/history", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { search, sort },
+      });
+      setLoans(response.data);
+    } catch (err) {
+      setError("Nie udało się pobrać historii wypożyczeń.");
+      setTimeout(() => setError(""), 3000);
+      console.error(err);
+    }
+  };
 
+  useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [search, sort]);
 
   const returnBook = async (bookId) => {
     const confirmReturn = window.confirm(
       "Czy na pewno chcesz zwrócić tę książkę?"
     );
-
-    if (!confirmReturn) {
-      return;
-    }
+    if (!confirmReturn) return;
 
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
         `http://localhost:5000/loan/return/${bookId}`,
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setSuccess(response.data.message);
@@ -60,11 +54,9 @@ const History = () => {
         )
       );
     } catch (err) {
-      console.error(err);
-      setError(
-        err.response?.data?.error || "Nie udało się zwrócić książki."
-      );
+      setError(err.response?.data?.error || "Nie udało się zwrócić książki.");
       setTimeout(() => setError(""), 3000);
+      console.error(err);
     }
   };
 
@@ -111,6 +103,25 @@ const History = () => {
         ← Wróć
       </button>
       <h2>Historia Wypożyczeń</h2>
+
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+        <input
+          type="text"
+          placeholder="Szukaj po tytule..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ flex: "1", padding: "8px" }}
+        />
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          style={{ padding: "8px" }}
+        >
+          <option value="loan_date_desc">Sortuj od najnowszych</option>
+          <option value="loan_date_asc">Sortuj od najstarszych</option>
+        </select>
+      </div>
+
       <div>
         {loans.length > 0 ? (
           loans.map((loan) => (

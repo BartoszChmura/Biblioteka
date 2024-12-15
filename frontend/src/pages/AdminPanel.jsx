@@ -6,7 +6,9 @@ const AdminPanel = () => {
   const [books, setBooks] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
   const [newBook, setNewBook] = useState({
+    
     title: "",
     author: "",
     published_year: "",
@@ -26,69 +28,56 @@ const AdminPanel = () => {
     "Powieść",
   ]);
   const [editingBook, setEditingBook] = useState(null);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({}); 
+const [editErrors, setEditErrors] = useState({});
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchBooks();
-  }, [page]);
+  }, [page, search]);
 
   const fetchBooks = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get("http://localhost:5000/book/all", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         params: {
           page,
           per_page: 10,
+          search,
         },
       });
       setBooks(response.data.books);
       setTotalPages(response.data.pages);
     } catch (err) {
-      setError("Nie udało się pobrać listy książek.");
+      setError("Nie udało się pobrać listy książek");
       setTimeout(() => setError(""), 3000);
     }
   };
 
-  const validateBook = () => {
+  const validateBook = (book) => {
     const newErrors = {};
-
-    if (!newBook.title || newBook.title.length > 50) {
-      newErrors.title = "Tytuł jest wymagany i nie może przekraczać 50 znaków.";
+    if (!book.title || book.title.length > 50) {
+      newErrors.title = "Tytuł jest wymagany i nie może przekraczać 50 znaków";
     }
-
-    if (!newBook.author || newBook.author.length > 50) {
-      newErrors.author = "Autor jest wymagany i nie może przekraczać 50 znaków.";
+    if (!book.author || book.author.length > 50) {
+      newErrors.author = "Autor jest wymagany i nie może przekraczać 50 znaków";
     }
-
-    if (!/^[a-zA-Z\s.,'-]+$/.test(newBook.author)) {
-      newErrors.author = "Autor może zawierać tylko litery, spacje i podstawowe znaki interpunkcyjne.";
+    if (!/^[a-zA-Z\s.,'-]+$/.test(book.author)) {
+      newErrors.author = "Autor może zawierać tylko litery, spacje i podstawowe znaki interpunkcyjne";
     }
-
     const currentYear = new Date().getFullYear();
-    if (!newBook.published_year || isNaN(newBook.published_year)) {
+    if (!book.published_year || isNaN(book.published_year)) {
       newErrors.published_year = "Rok wydania jest wymagany i musi być liczbą.";
-    } else if (newBook.published_year < 1440 || newBook.published_year > currentYear) {
+    } else if (book.published_year < 1440 || book.published_year > currentYear) {
       newErrors.published_year = `Rok wydania musi być między 1440 a ${currentYear}.`;
     }
-
-    if (!newBook.genre) {
-      newErrors.genre = "Gatunek jest wymagany.";
+    if (!book.genre) {
+      newErrors.genre = "Gatunek jest wymagany";
     }
-
-    if (!newBook.available_copies || isNaN(newBook.available_copies)) {
-      newErrors.available_copies = "Dostępne egzemplarze są wymagane i muszą być liczbą.";
-    } else if (newBook.available_copies < 1 || newBook.available_copies > 100) {
-      newErrors.available_copies = "Dostępne egzemplarze muszą być między 1 a 100.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleInputChange = (e) => {
@@ -101,21 +90,22 @@ const AdminPanel = () => {
       ...editingBook,
       [e.target.name]: e.target.value,
     });
+    setEditErrors({ ...editErrors, [e.target.name]: "" });
   };
-
+  
   const addBook = async (e) => {
     e.preventDefault();
-
-    if (!validateBook()) return;
-
+    const newErrors = validateBook(newBook);
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
     try {
       const token = localStorage.getItem("token");
       await axios.post("http://localhost:5000/book/add", newBook, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setSuccess("Książka dodana pomyślnie.");
+      setSuccess("Książka dodana pomyślnie");
       setTimeout(() => setSuccess(""), 3000);
       fetchBooks();
       setNewBook({
@@ -126,7 +116,7 @@ const AdminPanel = () => {
         available_copies: 1,
       });
     } catch (err) {
-      setError("Nie udało się dodać książki.");
+      setError("Nie udało się dodać książki");
       setTimeout(() => setError(""), 3000);
     }
   };
@@ -134,58 +124,44 @@ const AdminPanel = () => {
   const deleteBook = async (bookId) => {
     const confirmDelete = window.confirm("Czy na pewno chcesz usunąć tę książkę?");
     if (!confirmDelete) return;
-  
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:5000/book/${bookId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSuccess("Książka została usunięta.");
+      setSuccess("Książka została usunięta");
       setTimeout(() => setSuccess(""), 3000);
       fetchBooks();
     } catch (err) {
-      setError("Nie udało się usunąć książki.");
+      setError("Nie udało się usunąć książki");
       setTimeout(() => setError(""), 3000);
     }
   };
-  
-
-  const startEditing = (book) => {
-    setEditingBook({
-      title: book.title,
-      author: book.author,
-      published_year: book.published_year,
-      genre: book.genre,
-      id: book.id,
-    });
-  };
 
   const saveEdit = async () => {
+    const newEditErrors = validateBook(editingBook);
+    if (Object.keys(newEditErrors).length > 0) {
+      setEditErrors(newEditErrors);
+      return;
+    }
     try {
       const token = localStorage.getItem("token");
       await axios.put(
         `http://localhost:5000/book/${editingBook.id}`,
-        {
-          title: editingBook.title,
-          author: editingBook.author,
-          published_year: editingBook.published_year,
-          genre: editingBook.genre,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        editingBook,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess("Książka została zaktualizowana.");
+      setSuccess("Książka została zaktualizowana");
       setTimeout(() => setSuccess(""), 3000);
+      setEditErrors({});
       setEditingBook(null);
       fetchBooks();
     } catch (err) {
-      setError("Nie udało się zaktualizować książki.");
+      setError("Nie udało się zaktualizować książki");
       setTimeout(() => setError(""), 3000);
     }
   };
+  
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -196,8 +172,42 @@ const AdminPanel = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && <p style={{ color: "green" }}>{success}</p>}
+      {error && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#ffcccc",
+            color: "#cc0000",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            zIndex: 1000,
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+          }}
+        >
+          {error}
+        </div>
+      )}
+      {success && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#ccffcc",
+            color: "#009900",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            zIndex: 1000,
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+          }}
+        >
+          {success}
+        </div>
+      )}
 
       <h2>Panel Administratora</h2>
       <button onClick={() => navigate(-1)} style={{ marginBottom: "20px" }}>
@@ -213,9 +223,8 @@ const AdminPanel = () => {
             placeholder="Tytuł"
             value={newBook.title}
             onChange={handleInputChange}
-            required
           />
-          {errors.title && <p style={{ color: "red", fontSize: "12px" }}>{errors.title}</p>}
+          {errors.title && <p style={{ color: "red" }}>{errors.title}</p>}
         </div>
         <div>
           <input
@@ -224,9 +233,8 @@ const AdminPanel = () => {
             placeholder="Autor"
             value={newBook.author}
             onChange={handleInputChange}
-            required
           />
-          {errors.author && <p style={{ color: "red", fontSize: "12px" }}>{errors.author}</p>}
+          {errors.author && <p style={{ color: "red" }}>{errors.author}</p>}
         </div>
         <div>
           <input
@@ -235,17 +243,11 @@ const AdminPanel = () => {
             placeholder="Rok wydania"
             value={newBook.published_year}
             onChange={handleInputChange}
-            required
           />
-          {errors.published_year && <p style={{ color: "red", fontSize: "12px" }}>{errors.published_year}</p>}
+          {errors.published_year && <p style={{ color: "red" }}>{errors.published_year}</p>}
         </div>
         <div>
-          <select
-            name="genre"
-            value={newBook.genre}
-            onChange={handleInputChange}
-            required
-          >
+          <select name="genre" value={newBook.genre} onChange={handleInputChange}>
             <option value="">Wybierz gatunek</option>
             {genres.map((genre) => (
               <option key={genre} value={genre}>
@@ -253,7 +255,7 @@ const AdminPanel = () => {
               </option>
             ))}
           </select>
-          {errors.genre && <p style={{ color: "red", fontSize: "12px" }}>{errors.genre}</p>}
+          {errors.genre && <p style={{ color: "red" }}>{errors.genre}</p>}
         </div>
         <div>
           <input
@@ -262,74 +264,91 @@ const AdminPanel = () => {
             placeholder="Dostępne egzemplarze"
             value={newBook.available_copies}
             onChange={handleInputChange}
-            min="1"
-            required
           />
-          {errors.available_copies && <p style={{ color: "red", fontSize: "12px" }}>{errors.available_copies}</p>}
+          {errors.available_copies && (
+            <p style={{ color: "red" }}>{errors.available_copies}</p>
+          )}
         </div>
         <button type="submit">Dodaj książkę</button>
       </form>
 
       <div>
-        <h3>Lista książek</h3>
-        {books.map((book) => (
-          <div
-            key={book.id}
-            style={{
-              margin: "10px 0",
-              borderBottom: "1px solid #ccc",
-              padding: "10px",
-            }}
-          >
-            {editingBook && editingBook.id === book.id ? (
-              <div>
-                <input
-                  type="text"
-                  name="title"
-                  value={editingBook.title}
-                  onChange={handleEditInputChange}
-                />
-                <input
-                  type="text"
-                  name="author"
-                  value={editingBook.author}
-                  onChange={handleEditInputChange}
-                />
-                <input
-                  type="number"
-                  name="published_year"
-                  value={editingBook.published_year}
-                  onChange={handleEditInputChange}
-                />
-                <input
-                  type="text"
-                  name="genre"
-                  value={editingBook.genre}
-                  onChange={handleEditInputChange}
-                />
-                <button onClick={saveEdit}>Zapisz</button>
-                <button onClick={() => setEditingBook(null)}>Anuluj</button>
-              </div>
-            ) : (
-              <>
-                <h4>{book.title}</h4>
-                <p>Autor: {book.author}</p>
-                <p>Rok wydania: {book.published_year}</p>
-                <p>Gatunek: {book.genre}</p>
-                <p>Dostępne egzemplarze: {book.available_copies}</p>
-                <button onClick={() => startEditing(book)}>Edytuj</button>
-                <button onClick={() => deleteBook(book.id)}>Usuń</button>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
+  <h3>Lista książek</h3>
+  <div style={{ marginBottom: "20px" }}>
+    <input
+      type="text"
+      placeholder="Szukaj po tytule..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      style={{ flex: "1", padding: "8px" }}
+    />
+  </div>
 
-      <div style={{ marginTop: "10px", textAlign: "center" }}>
-        <button
-          onClick={() => handlePageChange(page - 1)}
-          disabled={page === 1}
-        >
+  {books.map((book) => (
+    <div key={book.id} style={{ borderBottom: "1px solid #ccc", padding: "10px" }}>
+      {editingBook && editingBook.id === book.id ? (
+        <div>
+          <input
+            type="text"
+            name="title"
+            value={editingBook.title}
+            onChange={handleEditInputChange}
+          />
+          {editErrors.title && <p style={{ color: "red" }}>{editErrors.title}</p>}
+
+          <input
+            type="text"
+            name="author"
+            value={editingBook.author}
+            onChange={handleEditInputChange}
+          />
+          {editErrors.author && <p style={{ color: "red" }}>{editErrors.author}</p>}
+
+          <input
+            type="number"
+            name="published_year"
+            value={editingBook.published_year}
+            onChange={handleEditInputChange}
+          />
+          {editErrors.published_year && (
+            <p style={{ color: "red" }}>{editErrors.published_year}</p>
+          )}
+
+          <select
+            name="genre"
+            value={editingBook.genre}
+            onChange={handleEditInputChange}
+          >
+            <option value="">Wybierz gatunek</option>
+            {genres.map((genre) => (
+              <option key={genre} value={genre}>
+                {genre}
+              </option>
+            ))}
+          </select>
+          {editErrors.genre && <p style={{ color: "red" }}>{editErrors.genre}</p>}
+
+          <button onClick={saveEdit}>Zapisz</button>
+          <button onClick={() => setEditingBook(null)}>Anuluj</button>
+        </div>
+      ) : (
+        <>
+          <h4>{book.title}</h4>
+          <p>Autor: {book.author}</p>
+          <p>Rok wydania: {book.published_year}</p>
+          <p>Gatunek: {book.genre}</p>
+          <p>Dostępne egzemplarze: {book.available_copies}</p>
+          <button onClick={() => setEditingBook(book)}>Edytuj</button>
+          <button onClick={() => deleteBook(book.id)}>Usuń</button>
+        </>
+      )}
+    </div>
+  ))}
+</div>
+
+
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
+        <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
           Poprzednia strona
         </button>
         {[...Array(totalPages)].map((_, index) => (
@@ -344,10 +363,7 @@ const AdminPanel = () => {
             {index + 1}
           </button>
         ))}
-        <button
-          onClick={() => handlePageChange(page + 1)}
-          disabled={page === totalPages}
-        >
+        <button onClick={() => handlePageChange(page + 1)} disabled={page === totalPages}>
           Następna strona
         </button>
       </div>

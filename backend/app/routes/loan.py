@@ -54,7 +54,20 @@ def return_book(book_id):
 def loan_history():
     user_id = get_jwt_identity()
 
-    loans = Loan.query.filter_by(user_id=user_id).all()
+    search = request.args.get("search", "")
+    sort = request.args.get("sort", "loan_date_desc")
+
+    query = Loan.query.filter_by(user_id=user_id)
+
+    if search:
+        query = query.join(Book).filter(Book.title.ilike(f"%{search}%"))
+
+    if sort == "loan_date_asc":
+        query = query.order_by(Loan.loan_date.asc())
+    else:
+        query = query.order_by(Loan.loan_date.desc())
+
+    loans = query.all()
 
     return jsonify([
         {
