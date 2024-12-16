@@ -126,8 +126,8 @@ const Books = () => {
           onChange={(e) => setSort(e.target.value)}
           style={{ padding: "8px" }}
         >
-          <option value="title">Sortuj po tytule</option>
-          <option value="author">Sortuj po autorze</option>
+          <option value="title">Sortuj po tytule A-Z</option>
+          <option value="author">Sortuj po autorze A-Z</option>
           <option value="year">Sortuj po roku wydania</option>
         </select>
       </div>

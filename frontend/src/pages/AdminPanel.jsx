@@ -133,7 +133,7 @@ const [editErrors, setEditErrors] = useState({});
       setTimeout(() => setSuccess(""), 3000);
       fetchBooks();
     } catch (err) {
-      setError("Nie udało się usunąć książki");
+      setError("Nie udało się usunąć książki, upewnij się, że wszystkie egzemplarze zostały zwrócone");
       setTimeout(() => setError(""), 3000);
     }
   };
