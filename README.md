@@ -28,10 +28,12 @@ Cała aplikacja oraz 80% funkcjonalności działa po uruchomieniu docker-compose
 
 ```bash
 Z poziomu CLI kontenera biblioteka_backend:
+
 flask seed_books
 ```
 
 ```bash
 Z poziomu terminala:
+
 docker exec -it flask_app flask seed_books
 ```
