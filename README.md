@@ -16,8 +16,8 @@ Biblioteka online to apliacja webowa imitująca działanie tradycyjnej bibliotek
 ## Kontenery
 1. biblioteka_backend
 2. biblioteka_frontend
-3. PostgreSQL
-4. pgAdmin
+3. biblioteka_db
+4. biblioteka_pgadmin
 
 ## Kroki do uruchomienia
 Cała aplikacja oraz 80% funkcjonalności działa po uruchomieniu docker-compose up.
