@@ -26,12 +26,12 @@ Cała aplikacja oraz 80% funkcjonalności działa po uruchomieniu docker-compose
 1. Aby uzyskać dostęp do panelu administratora (CRUD książek), należy utworzyć użytkownika o nazwie "admin".
 2. Aby zapełnić bibliotekę przykładowymi książkami w celu łatwiejszego testowania funkcjonalności należy wpisać odpowiednią komendę która uruchomi skrypt/metodę:
 
-Z poziomu CLI konteneru biblioteka_backend:
 ```bash
+Z poziomu CLI kontenera biblioteka_backend:
 flask seed_books
 ```
 
-Z poziomu terminalu:
 ```bash
+Z poziomu terminala:
 docker exec -it flask_app flask seed_books
 ```
