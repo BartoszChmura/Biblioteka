@@ -14,9 +14,9 @@ services:
       - biblioteka_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d biblioteka"]
-      interval: 5s
-      retries: 5
-      timeout: 5s
+      interval: 2s
+      retries: 10
+      timeout: 2s
 
   pgadmin:
     image: dpage/pgadmin4
