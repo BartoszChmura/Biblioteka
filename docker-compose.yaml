@@ -12,6 +12,11 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - biblioteka_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d biblioteka"]
+      interval: 5s
+      retries: 5
+      timeout: 5s
 
   pgadmin:
     image: dpage/pgadmin4
@@ -22,7 +27,8 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - biblioteka_network
 
@@ -37,8 +43,9 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - db
-    command: ["wait-for-it", "db:5432", "--", "python", "run.py"]
+      db:
+        condition: service_healthy
+    command: ["python", "run.py"]
     networks:
       - biblioteka_network
 
