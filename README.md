@@ -21,6 +21,7 @@ Biblioteka online to apliacja webowa imitująca działanie tradycyjnej bibliotek
 
 ## Kroki do uruchomienia
 Cała aplikacja oraz 80% funkcjonalności działa po uruchomieniu docker-compose up.
+Interfejs użytkownika znajduje się pod adresem lokalnym http://localhost:5173/
 
 ### Poboczne kroki do uzyskania pełnej funkcjonalności
 1. Aby uzyskać dostęp do panelu administratora (CRUD książek), należy utworzyć użytkownika o nazwie "admin".
